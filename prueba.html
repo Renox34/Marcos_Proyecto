@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Conexión y Estilo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h2>¡Visual Studio Code Funciona!</h2>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">Esta es una página de prueba local para verificar tus herramientas visuales.</p>
+                
+                <table class="table table-bordered table-striped mt-4">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Producto / Plato</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ceviche Mixto</td>
+                            <td><span class="badge bg-success">Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>Churrasco</td>
+                            <td><span class="badge bg-success">Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>Seco de Pollo</td>
+                            <td><span class="badge bg-danger">Agotado</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button class="btn btn-primary mt-3" onclick="saludar()">Haz clic aquí</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function saludar() {
+            alert("¡Perfecto! El código y los scripts están respondiendo correctamente.");
+        }
+    </script>
+</body>
+</html>
