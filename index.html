@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VESTRY — Tu Closet Digital</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Orbes de fondo -->
+<div id="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ════════════════ APP SHELL ════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <span id="logo">V</span>
+    <div class="nav-item active" data-view="wardrobe">
+      👗<span class="tooltip">Guardarropa</span>
+    </div>
+    <div class="nav-item" data-view="outfit">
+      ✨<span class="tooltip">Crear Outfit</span>
+    </div>
+    <div class="nav-item" data-view="calendar">
+      📅<span class="tooltip">Calendario</span>
+    </div>
+    <div class="nav-item" data-view="chat">
+      💬<span class="tooltip">VERA — Asistente</span>
+    </div>
+    <div class="nav-item" data-view="discover">
+      🔍<span class="tooltip">Descubrir</span>
+    </div>
+    <div class="nav-item" data-view="insights">
+      📊<span class="tooltip">Insights</span>
+    </div>
+    <div class="nav-item" data-view="capsule">
+      💎<span class="tooltip">Cápsula</span>
+    </div>
+    <div id="sidebar-avatar" title="Mi perfil">👤</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- ── GUARDARROPA ───────────────────────────── -->
+    <section id="view-wardrobe" class="view active">
+      <div class="view-header">
+        <h1>Mi Guardarropa</h1>
+        <p>Tu colección personal, organizada y accesible</p>
+        <div class="header-actions">
+          <div class="filter-chips" id="wardrobe-filters">
+            <span class="chip active" data-cat="all">Todas</span>
+            <span class="chip" data-cat="top">Tops</span>
+            <span class="chip" data-cat="bottom">Bottoms</span>
+            <span class="chip" data-cat="dress">Vestidos</span>
+            <span class="chip" data-cat="outerwear">Abrigos</span>
+            <span class="chip" data-cat="shoes">Calzado</span>
+            <span class="chip" data-cat="accessory">Accesorios</span>
+          </div>
+          <button class="btn-primary" id="btn-add-garment">+ Agregar prenda</button>
+        </div>
+      </div>
+      <div class="view-body">
+        <div class="garments-grid" id="garments-grid">
+          <div class="empty-state" id="wardrobe-empty" style="grid-column:1/-1">
+            <div class="empty-icon">👗</div>
+            <h3>Tu armario está vacío</h3>
+            <p>Comienza agregando tus prendas favoritas</p>
+            <button class="btn-primary" id="btn-add-garment-empty">+ Agregar primera prenda</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CREADOR DE OUTFIT ─────────────────────── -->
+    <section id="view-outfit" class="view">
+      <div class="view-header">
+        <h1>Crear Outfit</h1>
+        <p>Combina tus prendas y genera tu look perfecto</p>
+        <div class="header-actions">
+          <div class="filter-chips" id="outfit-filters">
+            <span class="chip active" data-cat="all">Todas</span>
+            <span class="chip" data-cat="top">Tops</span>
+            <span class="chip" data-cat="bottom">Bottoms</span>
+            <span class="chip" data-cat="dress">Vestidos</span>
+            <span class="chip" data-cat="outerwear">Abrigos</span>
+            <span class="chip" data-cat="shoes">Calzado</span>
+            <span class="chip" data-cat="accessory">Accesorios</span>
+          </div>
+        </div>
+      </div>
+      <div class="view-body">
+        <div class="outfit-wardrobe">
+          <div class="outfit-wardrobe-grid" id="outfit-garments-grid"></div>
+        </div>
+        <div class="outfit-canvas-area">
+          <div class="canvas-wrapper" id="canvas-wrapper">
+            <div class="canvas-placeholder" id="canvas-placeholder">
+              <div class="icon">✨</div>
+              <span>Selecciona prendas para crear tu look</span>
+            </div>
+            <img id="outfit-preview-img" style="display:none;max-width:100%;max-height:100%;object-fit:contain;">
+          </div>
+          <button class="btn-primary" id="btn-generate-look">✨ Generar Look</button>
+        </div>
+        <div class="outfit-panel glass-panel" style="padding:20px;">
+          <h3 style="font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Prendas seleccionadas</h3>
+          <div class="selected-garments-list" id="selected-list"></div>
+          <div style="height:1px;background:var(--glass-border);margin:16px 0;"></div>
+          <div class="outfit-meta">
+            <div class="form-group">
+              <label>Nombre del outfit</label>
+              <input class="form-input" id="outfit-name" placeholder="Mi look favorito">
+            </div>
+            <div class="form-group">
+              <label>Ocasión</label>
+              <select class="form-select" id="outfit-occasion">
+                <option value="">Seleccionar...</option>
+                <option value="casual">Casual</option>
+                <option value="trabajo">Trabajo</option>
+                <option value="semiformal">Semiformal</option>
+                <option value="formal">Formal</option>
+                <option value="fiesta">Fiesta</option>
+                <option value="deporte">Deporte</option>
+              </select>
+            </div>
+            <button class="btn-primary" id="btn-save-outfit" style="width:100%;justify-content:center;">💾 Guardar Outfit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CALENDARIO ────────────────────────────── -->
+    <section id="view-calendar" class="view">
+      <div class="view-header">
+        <h1>Calendario de Looks</h1>
+        <p>Planifica y registra tus outfits diarios</p>
+      </div>
+      <div class="view-body">
+        <div class="calendar-wrapper">
+          <div class="calendar-nav">
+            <button class="btn-icon" id="cal-prev">‹</button>
+            <h2 class="calendar-month" id="cal-month-label"></h2>
+            <button class="btn-icon" id="cal-next">›</button>
+          </div>
+          <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CHAT VERA ──────────────────────────────── -->
+    <section id="view-chat" class="view">
+      <div class="view-header">
+        <h1>VERA — Asistente de Moda</h1>
+        <p>Tu stylista personal con IA · Powered by Claude</p>
+      </div>
+      <div class="view-body">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-bubble">
+            <div class="bubble-avatar">✨</div>
+            <div class="bubble-content">
+              ¡Hola! Soy VERA, tu asistente de moda personal. Conozco cada prenda de tu armario y puedo ayudarte a crear el look perfecto para cualquier ocasión. ¿En qué puedo ayudarte hoy?
+            </div>
+          </div>
+        </div>
+        <div class="chat-suggestions" id="chat-suggestions">
+          <span class="suggestion-chip">Boda de día al aire libre</span>
+          <span class="suggestion-chip">Reunión de negocios semiformal</span>
+          <span class="suggestion-chip">Fiesta 90's fin de semestre</span>
+          <span class="suggestion-chip">First date en restaurante</span>
+        </div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chat-input" placeholder="Pídeme un outfit para cualquier ocasión..." rows="1"></textarea>
+          <button class="btn-primary" id="btn-send-chat">→</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DESCUBRIR ──────────────────────────────── -->
+    <section id="view-discover" class="view">
+      <div class="view-header">
+        <h1>Descubrir</h1>
+        <p>Recomendaciones de compra personalizadas según tu estilo</p>
+      </div>
+      <div class="view-body">
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:12px;">Mi estilo</h3>
+        <div class="styles-grid" id="styles-grid"></div>
+        <button class="btn-primary" id="btn-get-recs" style="margin-bottom:24px;">✨ Obtener recomendaciones</button>
+        <div id="recs-container"></div>
+      </div>
+    </section>
+
+    <!-- ── INSIGHTS ───────────────────────────────── -->
+    <section id="view-insights" class="view">
+      <div class="view-header">
+        <h1>Insights</h1>
+        <p>Conoce tus hábitos y optimiza tu armario</p>
+      </div>
+      <div class="view-body">
+        <div class="analytics-grid" id="analytics-grid">
+          <div class="analytics-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;">
+            <div style="color:var(--text-muted);text-align:center;">
+              <div style="font-size:32px;margin-bottom:8px;">📊</div>
+              <div>Cargando análisis...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CÁPSULA ────────────────────────────────── -->
+    <section id="view-capsule" class="view">
+      <div class="view-header">
+        <h1>Armario Cápsula</h1>
+        <p>Selección óptima de prendas para maximizar tus combinaciones</p>
+      </div>
+      <div class="view-body">
+        <div class="capsule-options">
+          <div class="capsule-input-group">
+            <label>Número de prendas</label>
+            <input type="number" class="capsule-number" id="capsule-count" value="10" min="5" max="30">
+          </div>
+          <div class="capsule-input-group">
+            <label>Temporada</label>
+            <select class="capsule-select" id="capsule-season">
+              <option value="todo el año">Todo el año</option>
+              <option value="primavera-verano">Primavera/Verano</option>
+              <option value="otoño-invierno">Otoño/Invierno</option>
+            </select>
+          </div>
+          <div class="capsule-input-group">
+            <label>Estilo</label>
+            <select class="capsule-select" id="capsule-style">
+              <option value="versátil">Versátil</option>
+              <option value="minimal chic">Minimal Chic</option>
+              <option value="office chic">Office Chic</option>
+              <option value="casual moderno">Casual Moderno</option>
+              <option value="old money">Old Money</option>
+            </select>
+          </div>
+          <div class="capsule-input-group" style="justify-content:flex-end;">
+            <label style="opacity:0;">\u200E</label>
+            <button class="btn-primary" id="btn-create-capsule">💎 Crear mi cápsula</button>
+          </div>
+        </div>
+        <div id="capsule-result"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ════════════════ MODALES ════════════════ -->
+
+<!-- Onboarding -->
+<div class="modal-overlay" id="modal-onboarding" style="display:none;">
+  <div class="modal">
+    <h2>Bienvenida a VESTRY ✨</h2>
+    <p>Tu closet digital inteligente. Cuéntame un poco sobre ti para comenzar.</p>
+    <div class="onboarding-avatar-preview" id="avatar-preview-btn">
+      <span id="avatar-preview-placeholder">📷</span>
+      <img id="avatar-preview-img" style="display:none;">
+      <div class="avatar-overlay">📷</div>
+    </div>
+    <input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
+    <div id="avatar-processing" style="display:none;">
+      <div class="processing-bar">
+        <div class="processing-spinner"></div>
+        <span>Procesando avatar...</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tu nombre</label>
+      <input class="form-input" id="onboarding-name" placeholder="¿Cómo te llamas?">
+    </div>
+    <div class="form-group">
+      <label>Tu email</label>
+      <input class="form-input" id="onboarding-email" type="email" placeholder="tu@email.com">
+    </div>
+    <button class="btn-primary" id="btn-onboarding-submit" style="width:100%;justify-content:center;margin-top:8px;">
+      Comenzar mi closet →
+    </button>
+  </div>
+</div>
+
+<!-- Agregar prenda -->
+<div class="modal-overlay" id="modal-add-garment" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="close-add-garment">×</button>
+    <h2>Agregar Prenda</h2>
+    <p>Sube una foto de tu prenda — removemos el fondo automáticamente</p>
+
+    <div class="upload-zone" id="garment-upload-zone">
+      <div class="upload-icon">👗</div>
+      <h3>Arrastra tu imagen aquí</h3>
+      <p>o haz clic para seleccionar · PNG, JPG hasta 10MB</p>
+      <input type="file" id="garment-file-input" accept="image/*" style="display:none;">
+    </div>
+
+    <div id="garment-processing" style="display:none;">
+      <div class="processing-bar">
+        <div class="processing-spinner"></div>
+        <span id="garment-processing-text">Removiendo fondo...</span>
+      </div>
+    </div>
+
+    <div id="garment-preview-area" style="display:none;text-align:center;margin:16px 0;">
+      <img id="garment-preview-img" style="max-height:180px;object-fit:contain;">
+    </div>
+
+    <div id="garment-form" style="display:none;">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input class="form-input" id="g-name" placeholder="Camisa blanca de lino">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Categoría</label>
+          <select class="form-select" id="g-category">
+            <option value="top">Top / Camisa</option>
+            <option value="bottom">Bottom / Pantalón</option>
+            <option value="dress">Vestido</option>
+            <option value="outerwear">Abrigo / Chaqueta</option>
+            <option value="shoes">Calzado</option>
+            <option value="accessory">Accesorio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Color principal</label>
+          <input class="form-input" id="g-color" placeholder="Blanco crema">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Marca (opcional)</label>
+          <input class="form-input" id="g-brand" placeholder="Zara">
+        </div>
+        <div class="form-group">
+          <label>Precio (USD)</label>
+          <input class="form-input" id="g-price" type="number" placeholder="0">
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-save-garment" style="width:100%;justify-content:center;margin-top:8px;">
+        💾 Guardar prenda
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Guardar outfit / preview -->
+<div class="modal-overlay" id="modal-outfit-preview" style="display:none;">
+  <div class="modal modal-wide">
+    <button class="modal-close" id="close-outfit-preview">×</button>
+    <h2>Tu Look</h2>
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="flex:0 0 auto;">
+        <img id="modal-outfit-img" class="outfit-preview-img" src="" alt="Preview del outfit">
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div class="form-group">
+          <label>Nombre del outfit</label>
+          <input class="form-input" id="modal-outfit-name" placeholder="Mi look favorito">
+        </div>
+        <div class="form-group">
+          <label>Ocasión</label>
+          <select class="form-select" id="modal-outfit-occasion">
+            <option value="casual">Casual</option>
+            <option value="trabajo">Trabajo</option>
+            <option value="semiformal">Semiformal</option>
+            <option value="formal">Formal</option>
+            <option value="fiesta">Fiesta</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="btn-confirm-save-outfit" style="width:100%;justify-content:center;">
+          💾 Guardar este look
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Asignar outfit a día del calendario -->
+<div class="modal-overlay" id="modal-calendar-day" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" id="close-calendar-day">×</button>
+    <h2 id="modal-cal-title">Asignar outfit</h2>
+    <p>Selecciona el outfit para este día</p>
+    <div id="calendar-outfit-list" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
+    <button class="btn-ghost" id="btn-clear-cal-day" style="width:100%;justify-content:center;">🗑 Quitar outfit de este día</button>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
