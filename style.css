@@ -947,8 +947,100 @@ html, body {
 /* ── HEADER ACTIONS ─────────────────────────────── */
 .header-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
 
+/* ── SECTION SUBTITLE ────────────────────────────── */
+.section-subtitle {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── PANEL TITLE ─────────────────────────────────── */
+.panel-title {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+/* ── DIVIDER ─────────────────────────────────────── */
+.divider { height: 1px; background: var(--glass-border); margin: 16px 0; }
+
 /* ── OUTFIT PREVIEW IMAGE ───────────────────────── */
 .outfit-preview-img { max-width: 300px; max-height: 450px; object-fit: contain; border-radius: 16px; }
+
+/* ── ANALYTICS LOADING ───────────────────────────── */
+.analytics-loading { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+.analytics-loading-content { color: var(--text-muted); text-align: center; }
+.analytics-loading-icon { font-size: 32px; margin-bottom: 8px; }
+
+/* ── CAPSULE HELPERS ─────────────────────────────── */
+.capsule-input-end { justify-content: flex-end; }
+.capsule-hidden-label { opacity: 0; }
+
+/* ── FULL-WIDTH UTILITY ──────────────────────────── */
+.full-width { grid-column: 1 / -1; }
+.w-full { width: 100%; }
+.justify-center { justify-content: center; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.text-center { text-align: center; }
+.gap-12 { gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.flex-wrap { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-1 { flex: 1; }
+.min-w-200 { min-width: 200px; }
+.flex-auto { flex: 0 0 auto; }
+.mb-16 { margin-bottom: 16px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.m-0-auto { margin: 0 auto; }
+
+.outfit-preview-img {
+  max-width: 300px;
+  max-height: 450px;
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+.outfit-preview-img-full {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.calendar-outfit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 56px; }
+  #sidebar { padding: 12px 0; }
+  .nav-item { width: 40px; height: 40px; font-size: 16px; }
+  .view-header { padding: 16px 16px 12px; }
+  .view-header h1 { font-size: 24px; }
+  .view-body { padding: 0 16px 16px; }
+  .garments-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  #view-outfit .view-body { flex-direction: column; }
+  .outfit-wardrobe { width: 100%; flex-direction: row; }
+  .outfit-wardrobe-grid { grid-template-columns: repeat(3, 1fr); max-height: 200px; }
+  .outfit-panel { width: 100%; }
+  .canvas-wrapper { width: 100%; height: 360px; }
+  .analytics-grid { grid-template-columns: 1fr; }
+  .capsule-options { flex-direction: column; }
+  .modal { padding: 20px; margin: 10px; }
+  .calendar-grid { gap: 4px; }
+  .calendar-day { min-height: 60px; padding: 4px; }
+  .header-actions { flex-wrap: wrap; }
+}
 
 /* ── SCROLLBAR ───────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

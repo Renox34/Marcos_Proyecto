@@ -71,7 +71,7 @@
       </div>
       <div class="view-body">
         <div class="garments-grid" id="garments-grid">
-          <div class="empty-state" id="wardrobe-empty" style="grid-column:1/-1">
+          <div class="empty-state full-width" id="wardrobe-empty">
             <div class="empty-icon">👗</div>
             <h3>Tu armario está vacío</h3>
             <p>Comienza agregando tus prendas favoritas</p>
@@ -108,14 +108,14 @@
               <div class="icon">✨</div>
               <span>Selecciona prendas para crear tu look</span>
             </div>
-            <img id="outfit-preview-img" style="display:none;max-width:100%;max-height:100%;object-fit:contain;">
+            <img id="outfit-preview-img" class="outfit-preview-img-full" style="display:none;">
           </div>
           <button class="btn-primary" id="btn-generate-look">✨ Generar Look</button>
         </div>
         <div class="outfit-panel glass-panel" style="padding:20px;">
-          <h3 style="font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Prendas seleccionadas</h3>
+          <h3 class="panel-title">Prendas seleccionadas</h3>
           <div class="selected-garments-list" id="selected-list"></div>
-          <div style="height:1px;background:var(--glass-border);margin:16px 0;"></div>
+          <div class="divider"></div>
           <div class="outfit-meta">
             <div class="form-group">
               <label>Nombre del outfit</label>
@@ -133,7 +133,7 @@
                 <option value="deporte">Deporte</option>
               </select>
             </div>
-            <button class="btn-primary" id="btn-save-outfit" style="width:100%;justify-content:center;">💾 Guardar Outfit</button>
+            <button class="btn-primary w-full justify-center" id="btn-save-outfit">💾 Guardar Outfit</button>
           </div>
         </div>
       </div>
@@ -192,9 +192,9 @@
         <p>Recomendaciones de compra personalizadas según tu estilo</p>
       </div>
       <div class="view-body">
-        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:12px;">Mi estilo</h3>
+        <h3 class="section-subtitle">Mi estilo</h3>
         <div class="styles-grid" id="styles-grid"></div>
-        <button class="btn-primary" id="btn-get-recs" style="margin-bottom:24px;">✨ Obtener recomendaciones</button>
+        <button class="btn-primary mb-16" id="btn-get-recs">✨ Obtener recomendaciones</button>
         <div id="recs-container"></div>
       </div>
     </section>
@@ -207,9 +207,9 @@
       </div>
       <div class="view-body">
         <div class="analytics-grid" id="analytics-grid">
-          <div class="analytics-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;">
-            <div style="color:var(--text-muted);text-align:center;">
-              <div style="font-size:32px;margin-bottom:8px;">📊</div>
+          <div class="analytics-card analytics-loading">
+            <div class="analytics-loading-content">
+              <div class="analytics-loading-icon">📊</div>
               <div>Cargando análisis...</div>
             </div>
           </div>
@@ -247,8 +247,8 @@
               <option value="old money">Old Money</option>
             </select>
           </div>
-          <div class="capsule-input-group" style="justify-content:flex-end;">
-            <label style="opacity:0;">\u200E</label>
+          <div class="capsule-input-group capsule-input-end">
+            <label class="capsule-hidden-label">‎</label>
             <button class="btn-primary" id="btn-create-capsule">💎 Crear mi cápsula</button>
           </div>
         </div>
@@ -286,7 +286,7 @@
       <label>Tu email</label>
       <input class="form-input" id="onboarding-email" type="email" placeholder="tu@email.com">
     </div>
-    <button class="btn-primary" id="btn-onboarding-submit" style="width:100%;justify-content:center;margin-top:8px;">
+    <button class="btn-primary w-full justify-center mt-8" id="btn-onboarding-submit">
       Comenzar mi closet →
     </button>
   </div>
@@ -322,7 +322,7 @@
         <label>Nombre</label>
         <input class="form-input" id="g-name" placeholder="Camisa blanca de lino">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="grid-2">
         <div class="form-group">
           <label>Categoría</label>
           <select class="form-select" id="g-category">
@@ -339,7 +339,7 @@
           <input class="form-input" id="g-color" placeholder="Blanco crema">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="grid-2">
         <div class="form-group">
           <label>Marca (opcional)</label>
           <input class="form-input" id="g-brand" placeholder="Zara">
@@ -349,7 +349,7 @@
           <input class="form-input" id="g-price" type="number" placeholder="0">
         </div>
       </div>
-      <button class="btn-primary" id="btn-save-garment" style="width:100%;justify-content:center;margin-top:8px;">
+      <button class="btn-primary w-full justify-center mt-8" id="btn-save-garment">
         💾 Guardar prenda
       </button>
     </div>
@@ -361,11 +361,11 @@
   <div class="modal modal-wide">
     <button class="modal-close" id="close-outfit-preview">×</button>
     <h2>Tu Look</h2>
-    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
-      <div style="flex:0 0 auto;">
+    <div class="flex-wrap">
+      <div class="flex-auto">
         <img id="modal-outfit-img" class="outfit-preview-img" src="" alt="Preview del outfit">
       </div>
-      <div style="flex:1;min-width:200px;">
+      <div class="flex-1 min-w-200">
         <div class="form-group">
           <label>Nombre del outfit</label>
           <input class="form-input" id="modal-outfit-name" placeholder="Mi look favorito">
@@ -380,7 +380,7 @@
             <option value="fiesta">Fiesta</option>
           </select>
         </div>
-        <button class="btn-primary" id="btn-confirm-save-outfit" style="width:100%;justify-content:center;">
+        <button class="btn-primary w-full justify-center" id="btn-confirm-save-outfit">
           💾 Guardar este look
         </button>
       </div>
@@ -394,8 +394,8 @@
     <button class="modal-close" id="close-calendar-day">×</button>
     <h2 id="modal-cal-title">Asignar outfit</h2>
     <p>Selecciona el outfit para este día</p>
-    <div id="calendar-outfit-list" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;margin-bottom:16px;"></div>
-    <button class="btn-ghost" id="btn-clear-cal-day" style="width:100%;justify-content:center;">🗑 Quitar outfit de este día</button>
+    <div id="calendar-outfit-list" class="calendar-outfit-list"></div>
+    <button class="btn-ghost w-full justify-center" id="btn-clear-cal-day">🗑 Quitar outfit de este día</button>
   </div>
 </div>
 

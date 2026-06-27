@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const Anthropic = require('@anthropic-ai/sdk');
 const { pool } = require('../db');
+const { asyncHandler } = require('../middleware');
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-router.post('/', async (req, res) => {
-  try {
-    const { userId, styles } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId requerido' });
+router.post('/', asyncHandler(async (req, res) => {
+  const { userId, styles } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId requerido' });
 
-    const garments = await pool.query(
-      'SELECT name, category, color, brand FROM garments WHERE user_id = $1',
-      [userId]
-    );
+  const garments = await pool.query(
+    'SELECT name, category, color, brand FROM garments WHERE user_id = $1',
+    [userId]
+  );
 
-    const activeStyles = styles || [];
+  const activeStyles = styles || [];
 
-    const prompt = `Analiza el armario de este usuario:
+  const prompt = `Analiza el armario de este usuario:
 - Prendas existentes: ${JSON.stringify(garments.rows)}
 - Estilos que sigue: ${activeStyles.join(', ') || 'ninguno especificado'}
 
@@ -47,49 +47,37 @@ Responde SOLO en JSON válido con esta estructura exacta:
   ]
 }`;
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }]
-    });
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: prompt }]
+  });
 
-    const text = response.content[0].text;
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return res.status(500).json({ error: 'Respuesta inválida de IA' });
+  const text = response.content[0].text;
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return res.status(500).json({ error: 'Respuesta inválida de IA' });
 
-    const data = JSON.parse(jsonMatch[0]);
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error generando recomendaciones' });
-  }
-});
+  const data = JSON.parse(jsonMatch[0]);
+  res.json(data);
+}));
 
-router.post('/save', async (req, res) => {
-  try {
-    const { userId, item } = req.body;
-    const result = await pool.query(
-      `INSERT INTO purchase_recommendations (user_id, item_name, style_category, estimated_price, buy_link, best_season_to_buy, reason)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [userId, item.item_name, item.style_category, item.estimated_price, item.asos_link, item.best_season_to_buy, item.reason]
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Error guardando recomendación' });
-  }
-});
+router.post('/save', asyncHandler(async (req, res) => {
+  const { userId, item } = req.body;
+  const result = await pool.query(
+    `INSERT INTO purchase_recommendations (user_id, item_name, style_category, estimated_price, buy_link, best_season_to_buy, reason)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+    [userId, item.item_name, item.style_category, item.estimated_price, item.asos_link, item.best_season_to_buy, item.reason]
+  );
+  res.json(result.rows[0]);
+}));
 
-router.get('/saved', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    const result = await pool.query(
-      'SELECT * FROM purchase_recommendations WHERE user_id = $1 ORDER BY saved_at DESC',
-      [userId]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error obteniendo recomendaciones guardadas' });
-  }
-});
+router.get('/saved', asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+  const result = await pool.query(
+    'SELECT * FROM purchase_recommendations WHERE user_id = $1 ORDER BY saved_at DESC',
+    [userId]
+  );
+  res.json(result.rows);
+}));
 
 module.exports = router;

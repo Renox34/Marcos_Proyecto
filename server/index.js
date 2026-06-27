@@ -1,4 +1,12 @@
 require('dotenv').config();
+
+const requiredEnv = ['DATABASE_URL', 'ANTHROPIC_API_KEY', 'JWT_SECRET'];
+const missing = requiredEnv.filter(k => !process.env[k]);
+if (missing.length > 0) {
+  console.error(`Faltan variables de entorno: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -28,7 +36,11 @@ app.get('*', (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('Error global:', err);
-  res.status(500).json({ error: 'Error interno del servidor' });
+  const status = err.status || 500;
+  res.status(status).json({
+    error: err.message || 'Error interno del servidor',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 async function start() {
@@ -36,6 +48,7 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`\n✨ VESTRY corriendo en http://localhost:${PORT}`);
     console.log(`   Base de datos: ${process.env.DATABASE_URL?.split('@')[1] || 'configurada'}`);
+    console.log(`   Entorno: ${process.env.NODE_ENV || 'development'}`);
   });
 }
 
