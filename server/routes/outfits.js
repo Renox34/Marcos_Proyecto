@@ -29,6 +29,16 @@ router.post('/', upload.single('thumbnail'), asyncHandler(async (req, res) => {
   res.json(result.rows[0]);
 }));
 
+router.patch('/:id', asyncHandler(async (req, res) => {
+  const { name, occasion } = req.body;
+  const result = await pool.query(
+    `UPDATE outfits SET name=COALESCE($1,name), occasion=COALESCE($2,occasion) WHERE id=$3 RETURNING *`,
+    [name || null, occasion || null, req.params.id]
+  );
+  if (!result.rows.length) return res.status(404).json({ error: 'Outfit no encontrado' });
+  res.json(result.rows[0]);
+}));
+
 router.delete('/:id', asyncHandler(async (req, res) => {
   const result = await pool.query('DELETE FROM outfits WHERE id = $1 RETURNING id', [req.params.id]);
   if (!result.rows.length) return res.status(404).json({ error: 'Outfit no encontrado' });

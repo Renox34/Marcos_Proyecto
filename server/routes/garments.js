@@ -2,9 +2,33 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
+const Anthropic = require('@anthropic-ai/sdk');
 const { pool } = require('../db');
 const upload = require('../upload');
 const { asyncHandler } = require('../middleware');
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// POST /api/garments/analyze — VERA identifica prenda desde imagen base64
+router.post('/analyze', asyncHandler(async (req, res) => {
+  const { image, mimeType = 'image/png' } = req.body;
+  if (!image) return res.status(400).json({ error: 'No image provided' });
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 256,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mimeType, data: image } },
+        { type: 'text', text: 'Analiza esta prenda de ropa. Responde ÚNICAMENTE con JSON válido, sin markdown ni texto adicional: {"name":"nombre descriptivo en español","category":"top|bottom|dress|outerwear|shoes|accessory","color":"color principal en español en minúsculas"}' }
+      ]
+    }]
+  });
+
+  const raw = response.content[0].text.trim().replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+  res.json(JSON.parse(raw));
+}));
 
 router.get('/', asyncHandler(async (req, res) => {
   const { userId } = req.query;
@@ -30,6 +54,30 @@ router.post('/', upload.fields([{ name: 'image' }, { name: 'original' }]), async
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
     [userId, name || 'Sin nombre', category || 'top', color || '', brand || '', imageUrl, originalUrl, tagsArray, price || null]
   );
+  res.json(result.rows[0]);
+}));
+
+// PATCH /api/garments/:id — editar prenda (campos + imagen opcional)
+router.patch('/:id', upload.fields([{ name: 'image' }, { name: 'original' }]), asyncHandler(async (req, res) => {
+  const { name, category, color, brand, price } = req.body;
+
+  const params  = [name, category, color || '', brand || '', price || null];
+  let imgClause = '';
+
+  if (req.files?.image) {
+    const imageUrl    = `/uploads/${req.files.image[0].filename}`;
+    const originalUrl = req.files.original ? `/uploads/${req.files.original[0].filename}` : imageUrl;
+    params.push(imageUrl, originalUrl);
+    imgClause = `, image_url=$6, original_url=$7`;
+  }
+
+  params.push(req.params.id);
+  const idIdx  = params.length;
+  const result = await pool.query(
+    `UPDATE garments SET name=$1,category=$2,color=$3,brand=$4,price=$5${imgClause} WHERE id=$${idIdx} RETURNING *`,
+    params
+  );
+  if (!result.rows.length) return res.status(404).json({ error: 'Prenda no encontrada' });
   res.json(result.rows[0]);
 }));
 
