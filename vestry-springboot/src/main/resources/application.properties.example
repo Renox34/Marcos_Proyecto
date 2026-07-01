@@ -1,0 +1,26 @@
+# Servidor
+server.port=3000
+
+# Base de datos PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/vestry
+spring.datasource.username=postgres
+spring.datasource.password=TU_PASSWORD_AQUI
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# Subida de archivos
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=15MB
+spring.servlet.multipart.max-request-size=20MB
+
+# Configuracion de la app
+app.jwt.secret=cambia_esto_por_un_secreto_largo_de_64_chars_minimo_para_seguridad
+app.jwt.expiration=2592000000
+app.upload.dir=C:/ruta/a/tu/carpeta/uploads
+app.anthropic.api-key=sk-ant-TU_API_KEY_AQUI
+app.anthropic.model=claude-sonnet-4-5

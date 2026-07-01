@@ -1,4 +1,18 @@
-echo "node_modules/
+# Node.js (proyecto original)
+node_modules/
 .env
-uploads/
-" > .gitignore
+server/uploads/
+
+# Spring Boot / Maven
+vestry-springboot/target/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Credenciales — nunca subir
+vestry-springboot/src/main/resources/application.properties
