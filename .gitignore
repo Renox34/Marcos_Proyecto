@@ -1,7 +1,7 @@
-# Node.js (proyecto original)
+# Node.js (proyecto original — archivos locales, no se suben)
 node_modules/
-.env
 server/uploads/
+.env
 
 # Spring Boot / Maven
 vestry-springboot/target/
@@ -13,6 +13,18 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+
+# Archivos Node.js raíz (ya removidos del repo)
+app.js
+index.html
+login.html
+login.js
+style.css
+prueba.html
+package.json
+package-lock.json
+setup.md
+server/
 
 # Credenciales — nunca subir
 vestry-springboot/src/main/resources/application.properties
