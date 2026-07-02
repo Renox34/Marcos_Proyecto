@@ -1,10 +1,16 @@
 // ─── login.js ────────────────────────────────────
 const API = '/api';
 
-// Si ya hay sesión activa, ir directo a la app
-if (localStorage.getItem('vestry_user')) {
-  window.location.href = '/';
-}
+// Si ya hay sesión activa CON token válido, ir directo a la app.
+// Las sesiones viejas sin token se descartan (deben re-loguearse).
+try {
+  const stored = JSON.parse(localStorage.getItem('vestry_user') || 'null');
+  if (stored?.token) {
+    window.location.href = '/';
+  } else if (stored) {
+    localStorage.removeItem('vestry_user');
+  }
+} catch { localStorage.removeItem('vestry_user'); }
 
 function toast(msg, type = 'info') {
   const el = document.createElement('div');
@@ -54,9 +60,10 @@ function showAvatarPreview(url) {
 
 // Submit
 document.getElementById('btn-login-submit').addEventListener('click', async () => {
-  const name  = document.getElementById('login-name').value.trim();
-  const email = document.getElementById('login-email').value.trim();
-  if (!name || !email) { toast('Completa nombre y email', 'error'); return; }
+  const name     = document.getElementById('login-name').value.trim();
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!name || !email || !password) { toast('Completa nombre, email y contraseña', 'error'); return; }
 
   const btn = document.getElementById('btn-login-submit');
   btn.textContent = 'Entrando...';
@@ -65,6 +72,7 @@ document.getElementById('btn-login-submit').addEventListener('click', async () =
   const fd = new FormData();
   fd.append('name', name);
   fd.append('email', email);
+  fd.append('password', password);
   if (pendingAvatarBlob) fd.append('avatar', pendingAvatarBlob, 'avatar.png');
 
   try {

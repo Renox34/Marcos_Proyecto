@@ -2,7 +2,17 @@
 //  VESTRY — app.js
 // ════════════════════════════════════════════════
 
-if (!localStorage.getItem('vestry_user')) {
+// Solo entrar si hay sesión CON token (las sesiones viejas sin token no sirven)
+try {
+  const _stored = JSON.parse(localStorage.getItem('vestry_user') || 'null');
+  if (!_stored?.token) {
+    localStorage.removeItem('vestry_user');
+    window.location.href = '/login.html';
+    throw new Error('No session');
+  }
+} catch (e) {
+  if (e.message === 'No session') throw e;
+  localStorage.removeItem('vestry_user');
   window.location.href = '/login.html';
   throw new Error('No session');
 }
@@ -10,8 +20,17 @@ if (!localStorage.getItem('vestry_user')) {
 const API = '/api';
 const $ = (id) => document.getElementById(id);
 
+// Convierte arrays que Spring devuelve como string JSON ("[1,2]") a array real
+function parseJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try { const p = JSON.parse(value); return Array.isArray(p) ? p : []; } catch { return []; }
+  }
+  return [];
+}
+
 // Wrapper de fetch que inyecta el JWT en cada petición
-function apiFetch(url, options = {}) {
+async function apiFetch(url, options = {}) {
   const token = JSON.parse(localStorage.getItem('vestry_user') || '{}')?.token;
   const headers = { ...(options.headers || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -19,7 +38,14 @@ function apiFetch(url, options = {}) {
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-  return fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers });
+  // Token inválido o expirado → volver al login
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('vestry_user');
+    window.location.href = '/login.html';
+    throw new Error('Sesión expirada');
+  }
+  return res;
 }
 
 const AppState = {
@@ -145,8 +171,8 @@ function updateAccountSection() {
   if (!u) return;
   $('account-name').textContent = u.name || 'Mi cuenta';
   const img = $('account-avatar-img');
-  if (u.avatar_url) {
-    img.src = u.avatar_url;
+  if (u.avatarUrl) {
+    img.src = u.avatarUrl;
     img.onload = () => img.classList.add('loaded');
     $('account-avatar-initials').style.display = 'none';
   } else {
@@ -277,7 +303,7 @@ function renderRecientes() {
   const grid  = $('recientes-grid');
   const empty = $('recientes-empty');
   const recent = [...AppState.garments]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 24);
   if (!recent.length) { grid.innerHTML = ''; grid.appendChild(empty); return; }
   grid.innerHTML = recent.map(garmentCardHTML).join('');
@@ -287,7 +313,7 @@ function renderRecientes() {
 function garmentCardHTML(g) {
   return `
     <div class="garment-card" data-id="${g.id}">
-      <img src="${g.image_url}" alt="${g.name}" loading="lazy">
+      <img src="${g.imageUrl}" alt="${g.name}" loading="lazy">
       <div class="garment-card-name">${g.name}</div>
       <div class="garment-card-cat">${CATEGORY_LABELS[g.category] || g.category}</div>
       <button class="garment-card-edit" data-edit="${g.id}" title="Editar">✏️</button>
@@ -357,7 +383,7 @@ function openEditGarment(id) {
   $('g-price').value    = g.price || '';
 
   $('garment-preview-wrap').classList.add('editable');
-  showGarmentPreview(g.image_url);
+  showGarmentPreview(g.imageUrl);
 
   $('add-garment-title').textContent    = 'Editar Prenda';
   $('add-garment-subtitle').textContent = 'Toca la imagen para cambiarla';
@@ -557,8 +583,8 @@ function renderOutfitsGrid() {
 function outfitCardHTML(o) {
   return `
     <div class="outfit-card" data-id="${o.id}">
-      ${o.thumbnail_url
-        ? `<img src="${o.thumbnail_url}" alt="${o.name}">`
+      ${o.thumbnailUrl
+        ? `<img src="${o.thumbnailUrl}" alt="${o.name}">`
         : `<div class="outfit-card-placeholder">✨</div>`}
       <div class="outfit-card-name">${o.name}</div>
       <div class="outfit-card-occasion">${o.occasion || ''}</div>
@@ -575,23 +601,23 @@ function openOutfitDetail(id) {
   if (!o) return;
   AppState.editingOutfitId = id;
 
-  $('outfit-detail-thumb').innerHTML = o.thumbnail_url
-    ? `<img src="${o.thumbnail_url}" style="max-height:220px;object-fit:contain;border-radius:14px;">`
+  $('outfit-detail-thumb').innerHTML = o.thumbnailUrl
+    ? `<img src="${o.thumbnailUrl}" style="max-height:220px;object-fit:contain;border-radius:14px;">`
     : `<div style="font-size:52px;padding:16px;text-align:center;">✨</div>`;
 
   $('outfit-detail-name').value     = o.name || '';
   $('outfit-detail-occasion').value = o.occasion || '';
 
-  const garmentIds = Array.isArray(o.garment_ids) ? o.garment_ids : [];
+  const garmentIds = parseJsonArray(o.garmentIds);
   const detailGarments = garmentIds.map(gid => AppState.garments.find(g => g.id == gid)).filter(Boolean);
   $('outfit-detail-garments').innerHTML = detailGarments.length
     ? detailGarments.map(g => `
         <div title="${g.name}">
-          <img class="outfit-detail-garment-thumb" src="${g.image_url}" alt="${g.name}">
+          <img class="outfit-detail-garment-thumb" src="${g.imageUrl}" alt="${g.name}">
         </div>`).join('')
     : '<span style="color:var(--text-muted);font-size:13px;">Sin prendas registradas</span>';
 
-  const days = AppState.calendarEntries.filter(e => String(e.outfit_id) === String(id));
+  const days = AppState.calendarEntries.filter(e => String(e.outfitId) === String(id));
   const daysWrap = $('outfit-detail-days-wrap');
   if (days.length) {
     daysWrap.style.display = 'block';
@@ -726,7 +752,7 @@ function renderOutfitBuilder() {
   grid.innerHTML = garments.map(g => `
     <div class="garment-card ${AppState.selectedGarments.find(s => s.id === g.id) ? 'selected' : ''}"
          data-id="${g.id}" style="min-height:unset;padding:8px;border-radius:12px;">
-      <img src="${g.image_url}" alt="${g.name}" loading="lazy" style="max-height:60%;">
+      <img src="${g.imageUrl}" alt="${g.name}" loading="lazy" style="max-height:60%;">
       <div class="garment-card-name" style="font-size:10px;">${g.name}</div>
     </div>`).join('');
 
@@ -753,7 +779,7 @@ function renderSelectedList() {
   const list = $('selected-list');
   list.innerHTML = AppState.selectedGarments.map(g => `
     <div class="selected-item">
-      <img src="${g.image_url}" alt="${g.name}">
+      <img src="${g.imageUrl}" alt="${g.name}">
       <div class="selected-item-info">
         <div class="selected-item-name">${g.name}</div>
         <div class="selected-item-cat">${CATEGORY_LABELS[g.category] || g.category}</div>
@@ -803,7 +829,7 @@ async function generateOutfitPreview() {
   // Cargar todas las imágenes
   const garments = [...AppState.selectedGarments];
   const images   = await Promise.all(
-    garments.map(g => loadImage(g.image_url).catch(() => null))
+    garments.map(g => loadImage(g.imageUrl).catch(() => null))
   );
 
   const layout = getCollageLayout(garments.length, W, H);
@@ -890,27 +916,28 @@ async function veraAutoOutfit() {
       body: JSON.stringify({
         message: 'Crea el mejor outfit posible para una ocasión casual combinando mis prendas. Elige entre 3 y 5 prendas que armonicen bien.',
         userId: AppState.currentUser.id,
-        conversationHistory: [],
+        history: [],
       })
     });
     const data = await res.json();
-    const jsonMatch = data.reply?.match(/```json\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-      try {
-        const parsed = JSON.parse(jsonMatch[1]);
-        const ids    = parsed.suggested_garment_ids || [];
-        if (ids.length) {
-          AppState.selectedGarments = AppState.garments.filter(g => ids.includes(g.id));
-          renderOutfitBuilder();
-          renderSelectedList();
-          await generateOutfitPreview();
-          toast('¡VERA creó tu outfit! ✨', 'success');
-        } else {
-          toast('VERA no encontró combinaciones', 'error');
-        }
-      } catch { toast('No se pudo parsear la sugerencia de VERA', 'error'); }
+    const raw  = data.response || data.reply || '';
+    const { recData } = parseChatResponse(raw);
+    // Fallback: formato viejo con bloque ```json```
+    let ids = recData?.suggested_garment_ids || [];
+    if (!ids.length) {
+      const jsonMatch = raw.match(/```json\s*([\s\S]*?)```/);
+      if (jsonMatch) {
+        try { ids = JSON.parse(jsonMatch[1]).suggested_garment_ids || []; } catch {}
+      }
+    }
+    if (ids.length) {
+      AppState.selectedGarments = AppState.garments.filter(g => ids.includes(g.id));
+      renderOutfitBuilder();
+      renderSelectedList();
+      await generateOutfitPreview();
+      toast('¡VERA creó tu outfit! ✨', 'success');
     } else {
-      toast('VERA respondió sin selección de prendas', 'error');
+      toast('VERA no encontró combinaciones', 'error');
     }
   } catch { toast('Error conectando con VERA', 'error'); }
   finally {
@@ -934,10 +961,16 @@ $('cal-next').addEventListener('click', () => {
 });
 
 async function loadCalendar() {
-  const m = `${AppState.calendarYear}-${String(AppState.calendarMonth + 1).padStart(2, '0')}`;
   try {
-    const res = await apiFetch(`${API}/calendar?userId=${AppState.currentUser.id}&month=${m}`);
-    AppState.calendarEntries = await res.json();
+    const res = await apiFetch(`${API}/calendar?userId=${AppState.currentUser.id}&year=${AppState.calendarYear}&month=${AppState.calendarMonth + 1}`);
+    const raw = await res.json();
+    // Normalizar: aplanar el objeto outfit anidado que devuelve Spring
+    AppState.calendarEntries = (Array.isArray(raw) ? raw : []).map(e => ({
+      ...e,
+      outfitId:     e.outfitId     ?? e.outfit?.id ?? null,
+      thumbnailUrl: e.thumbnailUrl ?? e.outfit?.thumbnailUrl ?? null,
+      outfitName:   e.outfitName   ?? e.outfit?.name ?? null,
+    }));
   } catch { AppState.calendarEntries = []; }
   renderCalendar();
 }
@@ -959,7 +992,7 @@ function renderCalendar() {
       <div class="calendar-day ${isToday ? 'today' : ''}" data-date="${ds}">
         <span class="day-number">${d}</span>
         <div class="day-outfit">
-          ${entry?.thumbnail_url ? `<img src="${entry.thumbnail_url}" alt="">` : entry ? `<span style="font-size:16px">✨</span>` : ''}
+          ${entry?.thumbnailUrl ? `<img src="${entry.thumbnailUrl}" alt="">` : entry ? `<span style="font-size:16px">✨</span>` : ''}
         </div>
       </div>`;
   }
@@ -981,13 +1014,13 @@ function openCalendarModal(dateStr) {
   const pickerLabel     = $('cal-picker-label');
   const list            = $('calendar-outfit-list');
 
-  if (entry?.outfit_id) {
-    const o = AppState.outfits.find(o => o.id === entry.outfit_id);
+  if (entry?.outfitId) {
+    const o = AppState.outfits.find(o => o.id === entry.outfitId);
     assignedSection.style.display = 'block';
     assignedSection.innerHTML = `
       <div class="cal-outfit-preview">
-        ${o?.thumbnail_url
-          ? `<img src="${o.thumbnail_url}" alt="${o?.name || ''}">`
+        ${o?.thumbnailUrl
+          ? `<img src="${o.thumbnailUrl}" alt="${o?.name || ''}">`
           : `<div style="width:90px;height:90px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;">✨</div>`}
         <div class="cal-outfit-preview-info">
           <div class="cal-outfit-preview-name">${o?.name || 'Outfit'}</div>
@@ -1001,13 +1034,13 @@ function openCalendarModal(dateStr) {
   }
 
   list.innerHTML = AppState.outfits.map(o => `
-    <div class="selected-item" style="cursor:pointer;${entry?.outfit_id === o.id ? 'border-color:var(--accent-primary);' : ''}" data-outfit-id="${o.id}">
-      ${o.thumbnail_url ? `<img src="${o.thumbnail_url}" alt="" style="width:36px;height:36px;object-fit:contain;">` : `<span style="font-size:22px">✨</span>`}
+    <div class="selected-item" style="cursor:pointer;${entry?.outfitId === o.id ? 'border-color:var(--accent-primary);' : ''}" data-outfit-id="${o.id}">
+      ${o.thumbnailUrl ? `<img src="${o.thumbnailUrl}" alt="" style="width:36px;height:36px;object-fit:contain;">` : `<span style="font-size:22px">✨</span>`}
       <div class="selected-item-info">
         <div class="selected-item-name">${o.name}</div>
         <div class="selected-item-cat">${o.occasion || ''}</div>
       </div>
-      ${entry?.outfit_id === o.id ? '<span style="color:var(--accent-primary)">✓</span>' : ''}
+      ${entry?.outfitId === o.id ? '<span style="color:var(--accent-primary)">✓</span>' : ''}
     </div>`).join('') || '<p style="color:var(--text-muted);text-align:center;padding:16px;">No tienes outfits guardados aún</p>';
   list.querySelectorAll('[data-outfit-id]').forEach(item => {
     item.addEventListener('click', () => assignOutfitToDay(parseInt(item.dataset.outfitId)));
@@ -1037,7 +1070,7 @@ async function assignOutfitToDay(outfitId) {
     });
     const entry  = await res.json();
     const outfit = AppState.outfits.find(o => o.id === outfitId);
-    const full   = { ...entry, thumbnail_url: outfit?.thumbnail_url, outfit_name: outfit?.name };
+    const full   = { ...entry, thumbnailUrl: outfit?.thumbnailUrl, outfitName: outfit?.name };
     const idx    = AppState.calendarEntries.findIndex(e => e.date?.startsWith(selectedCalDate));
     if (idx === -1) AppState.calendarEntries.push(full);
     else AppState.calendarEntries[idx] = full;
@@ -1076,11 +1109,14 @@ async function sendChat() {
     });
     const data = await res.json();
     removeTyping(typingId);
-    if (data.response) {
-      const { displayText, recData } = parseChatResponse(data.response);
-      AppState.chatHistory.push({ role: 'assistant', content: data.response });
+    const raw = data.response || data.reply;
+    if (raw) {
+      const { displayText, recData } = parseChatResponse(raw);
+      AppState.chatHistory.push({ role: 'assistant', content: raw });
       appendAssistantMessage(displayText, recData);
       if (recData?.suggested_garment_ids?.length) highlightSuggestedGarments(recData.suggested_garment_ids);
+    } else if (data.error) {
+      appendBubble('⚠️ ' + data.error, 'assistant');
     }
   } catch {
     removeTyping(typingId);
@@ -1265,7 +1301,7 @@ function highlightSuggestedGarments(ids) {
 // ════════════════════════════════════════════════
 function renderNovedades() {
   const grid   = $('styles-grid');
-  const active = AppState.currentUser?.style_preferences || [];
+  const active = parseJsonArray(AppState.currentUser?.stylePreferences);
   grid.innerHTML = STYLES.map(s => `
     <div class="style-card ${active.includes(s.key) ? 'active' : ''}" data-style="${s.key}">
       <div class="style-icon">${s.icon}</div>
@@ -1289,14 +1325,20 @@ $('btn-get-recs').addEventListener('click', async () => {
       body: JSON.stringify({ userId: AppState.currentUser.id, styles: AppState.activeStyles })
     });
     const data = await res.json();
-    if (data.recommendations?.length) {
-      container.innerHTML = `<div class="recs-grid">${data.recommendations.map(r => `
+    // El backend devuelve un string JSON generado por Gemini; parsearlo
+    let recs = data.recommendations;
+    if (typeof recs === 'string') {
+      const match = recs.match(/\[[\s\S]*\]/);
+      try { recs = match ? JSON.parse(match[0]) : []; } catch { recs = []; }
+    }
+    if (Array.isArray(recs) && recs.length) {
+      container.innerHTML = `<div class="recs-grid">${recs.map(r => `
         <div class="rec-card">
           <div class="rec-icon">${getCategoryEmoji(r.category)}</div>
-          <div class="rec-name">${r.item_name}</div>
-          <div class="rec-reason">${r.reason}</div>
-          <div class="rec-price">$${Number(r.estimated_price).toFixed(0)}</div>
-          <div class="rec-season">🗓 ${r.best_season_to_buy}</div>
+          <div class="rec-name">${r.name || r.itemName || ''}</div>
+          <div class="rec-reason">${r.reason || ''}</div>
+          <div class="rec-price">$${Number(r.price ?? r.estimatedPrice ?? 0).toFixed(0)}</div>
+          <div class="rec-season">🗓 ${r.season || r.bestSeasonToBuy || ''}</div>
         </div>`).join('')}</div>`;
     } else {
       container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:24px;">No se generaron recomendaciones</p>';
@@ -1325,7 +1367,7 @@ async function loadAnalytics() {
 
 function renderAnalytics(data) {
   const grid    = $('analytics-grid');
-  const maxWorn = Math.max(...(data.topWorn?.map(g => g.times_worn) || [1]), 1);
+  const maxWorn = Math.max(...(data.topWorn?.map(g => g.timesWorn) || [1]), 1);
   const catColors = ['#c8a96e','#9b8bb4','#6e9bc8','#6ec8b4','#c86e9b','#c8b46e'];
 
   grid.innerHTML = `
@@ -1363,8 +1405,8 @@ function renderAnalytics(data) {
       <h3>Prendas más usadas</h3>
       ${data.topWorn?.length ? `<div class="bar-chart">${data.topWorn.slice(0, 8).map(g => `
         <div class="bar-item">
-          <div class="bar-label"><span>${g.name}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--accent-primary);">${g.times_worn}×</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:${(g.times_worn / maxWorn * 100).toFixed(0)}%"></div></div>
+          <div class="bar-label"><span>${g.name}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--accent-primary);">${g.timesWorn}×</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(g.timesWorn / maxWorn * 100).toFixed(0)}%"></div></div>
         </div>`).join('')}</div>`
       : '<p style="color:var(--text-muted);font-size:13px;">Asigna outfits al planificador para registrar el uso.</p>'}
     </div>
@@ -1382,7 +1424,7 @@ function renderAnalytics(data) {
       <h3>Sin usar (60+ días)</h3>
       ${data.sleeping?.length ? `
         <div class="sleeping-grid">${data.sleeping.slice(0, 8).map(g => `
-          <div class="sleeping-card"><img src="${g.image_url}" alt="${g.name}"><div>${g.name}</div></div>`).join('')}</div>
+          <div class="sleeping-card"><img src="${g.imageUrl}" alt="${g.name}"><div>${g.name}</div></div>`).join('')}</div>
         <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">${data.sleeping.length} prenda${data.sleeping.length > 1 ? 's' : ''} olvidada${data.sleeping.length > 1 ? 's' : ''}</p>`
       : '<p style="color:var(--text-muted);font-size:13px;">¡Todas tus prendas están activas 🌟</p>'}
     </div>`;

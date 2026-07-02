@@ -24,8 +24,9 @@ public class UserController {
     public ResponseEntity<AuthResponse> register(
             @RequestParam String name,
             @RequestParam String email,
+            @RequestParam String password,
             @RequestParam(required = false) MultipartFile avatar) throws IOException {
-        return ResponseEntity.ok(userService.registerOrLogin(name, email, avatar));
+        return ResponseEntity.ok(userService.registerOrLogin(name, email, password, avatar));
     }
 
     @PatchMapping("/{id}/avatar")

@@ -16,6 +16,13 @@ public class GeminiController {
         this.geminiService = geminiService;
     }
 
+    @PostMapping("/analyze")
+    public ResponseEntity<String> analyze(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(
+            geminiService.analyzeGarmentImage(body.get("image"), body.get("mediaType"))
+        );
+    }
+
     @PostMapping("/catalog-image")
     public ResponseEntity<Map<String, String>> catalogImage(@RequestBody Map<String, String> body) {
         String base64 = geminiService.generateCatalogImage(body.get("image"), body.get("mediaType"));

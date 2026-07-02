@@ -19,7 +19,7 @@ public class GeminiService {
     private static final String BASE_URL =
         "https://generativelanguage.googleapis.com/v1beta/models/";
     private static final String FLASH_MODEL   = "gemini-2.5-flash";
-    private static final String IMG_GEN_MODEL = "gemini-2.0-flash-preview-image-generation";
+    private static final String IMG_GEN_MODEL = "gemini-2.5-flash-image";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
