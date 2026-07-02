@@ -1,9 +1,9 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.Outfit;
-import com.vestry.model.User;
-import com.vestry.repository.OutfitRepository;
-import com.vestry.repository.UserRepository;
+import com.vestry.Model.Outfit;
+import com.vestry.Model.User;
+import com.vestry.Repository.OutfitRepository;
+import com.vestry.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

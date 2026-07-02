@@ -1,7 +1,7 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.model.CalendarEntry;
-import com.vestry.service.CalendarService;
+import com.vestry.Model.CalendarEntry;
+import com.vestry.Service.CalendarService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

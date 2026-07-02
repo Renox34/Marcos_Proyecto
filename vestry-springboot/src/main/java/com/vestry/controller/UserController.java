@@ -1,8 +1,8 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.dto.AuthResponse;
-import com.vestry.model.User;
-import com.vestry.service.UserService;
+import com.vestry.Dto.AuthResponse;
+import com.vestry.Model.User;
+import com.vestry.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

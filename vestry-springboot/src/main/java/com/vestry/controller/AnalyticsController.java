@@ -1,6 +1,6 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.service.AnalyticsService;
+import com.vestry.Service.AnalyticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

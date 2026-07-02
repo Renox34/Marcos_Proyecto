@@ -1,9 +1,9 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.Garment;
-import com.vestry.model.User;
-import com.vestry.repository.GarmentRepository;
-import com.vestry.repository.UserRepository;
+import com.vestry.Model.Garment;
+import com.vestry.Model.User;
+import com.vestry.Repository.GarmentRepository;
+import com.vestry.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,20 +20,25 @@ public class GarmentService {
 
     private final GarmentRepository garmentRepository;
     private final UserRepository userRepository;
-    private final AnthropicService anthropicService;
-
+    //private final AnthropicService anthropicService;
+private final GeminiService geminiService;
+    
     @Value("${app.upload.dir}")
     private String uploadDir;
 
     public GarmentService(GarmentRepository garmentRepository, UserRepository userRepository,
-                          AnthropicService anthropicService) {
+                          // AnthropicService anthropicService) {
+            GeminiService geminiService) {
         this.garmentRepository = garmentRepository;
         this.userRepository = userRepository;
-        this.anthropicService = anthropicService;
+        //this.anthropicService = anthropicService;
+             this.geminiService = geminiService;
     }
 
     public String analyzeImage(String base64Image, String mediaType) {
-        return anthropicService.analyzeGarmentImage(base64Image, mediaType);
+        //return anthropicService.analyzeGarmentImage(base64Image, mediaType);
+                return geminiService.analyzeGarmentImage(base64Image, mediaType);
+
     }
 
     public List<Garment> getByUser(Long userId) {

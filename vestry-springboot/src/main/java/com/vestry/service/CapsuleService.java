@@ -1,7 +1,7 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.Garment;
-import com.vestry.repository.GarmentRepository;
+import com.vestry.Model.Garment;
+import com.vestry.Repository.GarmentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,28 +12,42 @@ import java.util.stream.Collectors;
 public class CapsuleService {
 
     private final GarmentRepository garmentRepository;
-    private final AnthropicService anthropicService;
+    private final GeminiService geminiService;
+//private final AnthropicService anthropicService;
 
-    public CapsuleService(GarmentRepository garmentRepository, AnthropicService anthropicService) {
+    public CapsuleService(GarmentRepository garmentRepository, GeminiService geminiService) {
         this.garmentRepository = garmentRepository;
-        this.anthropicService = anthropicService;
+        this.geminiService = geminiService;
+        
+//this.anthropicService = anthropicService;
     }
 
     public String generate(Long userId) {
+
         List<Garment> garments = garmentRepository.findByUserId(userId);
 
         String wardrobeStr = garments.stream()
-                .map(g -> "ID:" + g.getId() + " " + g.getName()
-                        + " (" + g.getCategory() + ", " + g.getColor() + ")")
+                .map(g -> "ID:" + g.getId() + " "
+                        + g.getName()
+                        + " (" + g.getCategory()
+                        + ", " + g.getColor() + ")")
                 .collect(Collectors.joining(", "));
 
-        String prompt = "Armario: " + wardrobeStr
-                + ". Selecciona 10-15 prendas para un armario capsula versatil."
-                + " Responde en JSON: {selected_ids:[...], reasons:{id:razon}, total_outfits_possible:N}";
+        String prompt = """
+Eres un experto en moda y armarios cápsula.
 
-        return anthropicService.chat(
-                "Eres experto en armarios capsula. Responde SOLO con JSON.",
-                List.of(Map.of("role", "user", "content", prompt))
-        );
+Este es el armario del usuario:
+
+%s
+
+Selecciona entre 10 y 15 prendas que formarían el mejor armario cápsula.
+
+Si el armario está vacío, recomienda las prendas ideales para comenzar uno.
+
+Explica brevemente por qué elegiste cada prenda.
+"""
+        .formatted(wardrobeStr);
+
+        return geminiService.preguntar(prompt);
     }
 }

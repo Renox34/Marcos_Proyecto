@@ -395,28 +395,54 @@ async function processGarmentImage(file) {
   uploadZone.style.display = 'none';
   $('garment-processing').style.display = 'block';
 
-  // 1. Remover fondo
+  // 1. Generar imagen de catálogo con IA (Gemini)
+  $('garment-processing-text').textContent = 'Generando imagen de catálogo...';
   let blob = file;
-  $('garment-processing-text').textContent = 'Removiendo fondo...';
-  try { blob = await removeBackground(file); } catch { /* keep original */ }
+  try {
+    const b64orig = await blobToBase64(file);
+    const res = await apiFetch(`${API}/gemini/catalog-image`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ image: b64orig, mediaType: file.type || 'image/jpeg' })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.image) {
+        // Convertir base64 devuelto por Gemini a Blob PNG
+        const byteStr = atob(data.image);
+        const arr = new Uint8Array(byteStr.length);
+        for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+        blob = new Blob([arr], { type: 'image/png' });
+        toast('Imagen de catálogo generada ✨', 'success');
+      }
+    }
+  } catch {
+    // Si falla la generación, intentar al menos quitar el fondo
+    $('garment-processing-text').textContent = 'Removiendo fondo...';
+    try { blob = await removeBackground(file); } catch { blob = file; }
+  }
+
   pendingGarmentBlob = blob;
   showGarmentPreview(URL.createObjectURL(blob));
   $('garment-processing').style.display = 'none';
 
-  // 2. VERA analiza (si está disponible)
+  // 2. VERA analiza la prenda (usa la imagen original para mejor análisis)
   $('vera-analyzing').style.display = 'block';
   try {
-    const b64   = await blobToBase64(blob);
-    const res   = await apiFetch(`${API}/garments/analyze`, {
+    const b64 = await blobToBase64(file); // original para análisis
+    const res = await apiFetch(`${API}/gemini/analyze`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ image: b64, mimeType: blob.type || 'image/png' })
+      body: JSON.stringify({ image: b64, mediaType: file.type || 'image/jpeg' })
     });
     if (res.ok) {
-      const data = await res.json();
-      if (data.name)     $('g-name').value     = data.name;
-      if (data.category) $('g-category').value = data.category;
-      if (data.color)    $('g-color').value    = data.color;
-      toast('VERA identificó la prenda ✨', 'success');
+      const text = await res.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const data = JSON.parse(jsonMatch[0]);
+        if (data.name)     $('g-name').value     = data.name;
+        if (data.category) $('g-category').value = data.category;
+        if (data.color)    $('g-color').value    = data.color;
+        toast('VERA identificó la prenda ✨', 'success');
+      }
     }
   } catch { /* el usuario llena manualmente */ }
   finally { $('vera-analyzing').style.display = 'none'; }
@@ -1046,20 +1072,15 @@ async function sendChat() {
   try {
     const res  = await apiFetch(`${API}/chat`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ message: msg, userId: AppState.currentUser.id, conversationHistory: AppState.chatHistory.slice(-10) })
+      body: JSON.stringify({ message: msg, userId: AppState.currentUser.id, history: AppState.chatHistory.slice(-10) })
     });
     const data = await res.json();
     removeTyping(typingId);
-    if (data.reply) {
-      const jsonMatch = data.reply.match(/```json\s*([\s\S]*?)```/);
-      const display   = data.reply.replace(/```json[\s\S]*?```/g, '').trim();
-      let suggestedIds = [];
-      if (jsonMatch) {
-        try { suggestedIds = JSON.parse(jsonMatch[1]).suggested_garment_ids || []; } catch {}
-      }
-      AppState.chatHistory.push({ role: 'assistant', content: data.reply });
-      appendBubble(display, 'assistant');
-      if (suggestedIds.length) highlightSuggestedGarments(suggestedIds);
+    if (data.response) {
+      const { displayText, recData } = parseChatResponse(data.response);
+      AppState.chatHistory.push({ role: 'assistant', content: data.response });
+      appendAssistantMessage(displayText, recData);
+      if (recData?.suggested_garment_ids?.length) highlightSuggestedGarments(recData.suggested_garment_ids);
     }
   } catch {
     removeTyping(typingId);
@@ -1067,16 +1088,153 @@ async function sendChat() {
   }
 }
 
+// Logos de tiendas via Clearbit (gratis, sin API key)
+const STORE_LOGOS = {
+  'De Prati':   'https://logo.clearbit.com/deprati.com.ec',
+  'EtaFashion': 'https://logo.clearbit.com/etafashion.com',
+  'RM':         'https://logo.clearbit.com/rm.com.ec',
+  'Zara':       'https://logo.clearbit.com/zara.com',
+  'H&M':        'https://logo.clearbit.com/hm.com',
+  'Nike':       'https://logo.clearbit.com/nike.com',
+  'Adidas':     'https://logo.clearbit.com/adidas.com',
+  'Puma':       'https://logo.clearbit.com/puma.com',
+};
+
+// Parsea la respuesta del chat separando texto y JSON de recomendación
+function parseChatResponse(raw) {
+  const startMarker = '===JSON_START===';
+  const endMarker   = '===JSON_END===';
+  const startIdx = raw.indexOf(startMarker);
+  const endIdx   = raw.indexOf(endMarker);
+  let displayText = raw;
+  let recData = null;
+  if (startIdx !== -1 && endIdx !== -1) {
+    displayText = raw.substring(0, startIdx).trim();
+    const jsonStr = raw.substring(startIdx + startMarker.length, endIdx).trim();
+    try { recData = JSON.parse(jsonStr); } catch {}
+  }
+  // Limpiar markdown básico del texto
+  displayText = displayText
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+  return { displayText, recData };
+}
+
+// Renderiza mensaje del asistente con UI especial si hay recomendación
+function appendAssistantMessage(displayText, recData) {
+  const messages = $('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-message-group';
+
+  // Burbuja de texto normal
+  if (displayText) {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.innerHTML = `
+      <div class="bubble-avatar">✨</div>
+      <div class="bubble-content">${displayText}</div>`;
+    wrap.appendChild(bubble);
+  }
+
+  // Card de recomendación si hay items
+  if (recData?.type === 'recommendation' && recData.items?.length) {
+    const card = buildRecommendationCard(recData);
+    wrap.appendChild(card);
+  }
+
+  messages.appendChild(wrap);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// Construye la tarjeta visual de recomendación de outfit
+function buildRecommendationCard(rec) {
+  const card = document.createElement('div');
+  card.className = 'rec-chat-card';
+
+  // Header con nombre del outfit y precio total
+  card.innerHTML = `
+    <div class="rec-chat-header">
+      <span class="rec-chat-title">${rec.outfit_name || 'Look recomendado'}</span>
+      <span class="rec-chat-total">$${(rec.total_usd || 0).toFixed(2)} USD total</span>
+    </div>`;
+
+  // Collage de prendas
+  const collage = document.createElement('div');
+  collage.className = 'rec-chat-collage';
+  rec.items.forEach(item => {
+    const img = document.createElement('div');
+    img.className = 'rec-collage-item';
+    const garment = item.wardrobe_id
+      ? AppState.garments.find(g => g.id == item.wardrobe_id)
+      : null;
+    const imgSrc = garment?.imageUrl
+      ? garment.imageUrl
+      : (STORE_LOGOS[item.store] || `https://logo.clearbit.com/${item.store_domain || 'google.com'}`);
+    img.innerHTML = `
+      <img src="${imgSrc}" alt="${item.name}"
+           onerror="this.src='https://logo.clearbit.com/${item.store_domain || 'deprati.com.ec'}'">
+      <span>${item.emoji || '👗'}</span>`;
+    collage.appendChild(img);
+  });
+  card.appendChild(collage);
+
+  // Grid de items individuales
+  const grid = document.createElement('div');
+  grid.className = 'rec-items-grid';
+  rec.items.forEach(item => {
+    const logoSrc = STORE_LOGOS[item.store] || `https://logo.clearbit.com/${item.store_domain || 'google.com'}`;
+    const fromWardrobe = !!item.wardrobe_id;
+    grid.innerHTML += `
+      <div class="rec-item-card">
+        <div class="rec-item-top">
+          <img class="rec-item-logo" src="${logoSrc}" alt="${item.store}"
+               onerror="this.style.display='none'">
+          <div class="rec-item-info">
+            <span class="rec-item-emoji">${item.emoji || '👗'}</span>
+            <span class="rec-item-name">${item.name}</span>
+            <span class="rec-item-color" style="color:var(--text-muted)">${item.color || ''}</span>
+          </div>
+        </div>
+        <div class="rec-item-bottom">
+          <span class="rec-item-store">${item.store}</span>
+          ${fromWardrobe
+            ? '<span class="rec-item-badge">✓ En tu armario</span>'
+            : `<span class="rec-item-price">$${(item.price_usd || 0).toFixed(2)}</span>`
+          }
+          ${!fromWardrobe && item.buy_url
+            ? `<a class="rec-item-buy" href="${item.buy_url}" target="_blank" rel="noopener">Comprar →</a>`
+            : ''
+          }
+        </div>
+      </div>`;
+  });
+  card.appendChild(grid);
+
+  // Total solo si hay items por comprar
+  const toBuy = rec.items.filter(i => !i.wardrobe_id);
+  if (toBuy.length && rec.total_usd) {
+    const footer = document.createElement('div');
+    footer.className = 'rec-chat-footer';
+    footer.innerHTML = `
+      <span>💰 Inversión total estimada</span>
+      <strong>$${rec.total_usd.toFixed(2)} USD</strong>`;
+    card.appendChild(footer);
+  }
+
+  return card;
+}
+
 function appendBubble(text, role) {
   const messages = $('chat-messages');
   const div = document.createElement('div');
   div.className = `chat-bubble ${role}`;
   const avHTML = role === 'user'
-    ? (AppState.currentUser?.avatar_url ? `<img src="${AppState.currentUser.avatar_url}">` : '👤')
+    ? (AppState.currentUser?.avatarUrl ? `<img src="${AppState.currentUser.avatarUrl}">` : '👤')
     : '✨';
   div.innerHTML = `
     <div class="bubble-avatar">${avHTML}</div>
-    <div class="bubble-content">${text.replace(/\n/g, '<br>')}</div>`;
+    <div class="bubble-content">${typeof text === 'string' ? text.replace(/\n/g, '<br>') : text}</div>`;
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
 }

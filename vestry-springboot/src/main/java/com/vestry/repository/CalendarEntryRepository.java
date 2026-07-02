@@ -1,6 +1,6 @@
-package com.vestry.repository;
+package com.vestry.Repository;
 
-import com.vestry.model.CalendarEntry;
+import com.vestry.Model.CalendarEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;

@@ -1,7 +1,7 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.model.Garment;
-import com.vestry.service.GarmentService;
+import com.vestry.Model.Garment;
+import com.vestry.Service.GarmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

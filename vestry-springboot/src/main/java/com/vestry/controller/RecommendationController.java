@@ -1,7 +1,7 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.model.PurchaseRecommendation;
-import com.vestry.service.RecommendationService;
+import com.vestry.Model.PurchaseRecommendation;
+import com.vestry.Service.RecommendationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,7 +1,7 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.Garment;
-import com.vestry.repository.GarmentRepository;
+import com.vestry.Model.Garment;
+import com.vestry.Repository.GarmentRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

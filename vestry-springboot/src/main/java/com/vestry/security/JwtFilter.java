@@ -1,4 +1,4 @@
-package com.vestry.security;
+package com.vestry.Security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

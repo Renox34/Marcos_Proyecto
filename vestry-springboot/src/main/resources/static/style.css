@@ -1463,3 +1463,49 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: var(--glass-border) transparent;
 }
+
+/* ════════════════════════════════════════════════
+   VERA CHAT — Tarjetas de recomendacion
+════════════════════════════════════════════════ */
+.chat-message-group { display: flex; flex-direction: column; gap: 10px; }
+
+.rec-chat-card {
+  margin-left: 46px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(200,169,110,0.22);
+  border-radius: 20px;
+  overflow: hidden;
+  animation: cardIn 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.rec-chat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.rec-chat-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 400; color: var(--text-primary); }
+.rec-chat-total { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-primary); background: var(--accent-glow); padding: 3px 10px; border-radius: 100px; border: 1px solid rgba(200,169,110,0.2); }
+
+.rec-chat-collage { display: flex; gap: 4px; padding: 12px 14px; overflow-x: auto; scrollbar-width: none; }
+.rec-chat-collage::-webkit-scrollbar { display: none; }
+.rec-collage-item { flex-shrink: 0; width: 80px; height: 100px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; overflow: hidden; }
+.rec-collage-item img { width: 100%; height: 80%; object-fit: contain; padding: 6px; }
+.rec-collage-item span { font-size: 16px; line-height: 1; }
+
+.rec-items-grid { display: flex; flex-direction: column; gap: 1px; padding: 0 8px 8px; }
+.rec-item-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 12px; transition: background 0.15s; }
+.rec-item-card:hover { background: rgba(255,255,255,0.04); }
+.rec-item-top { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.rec-item-logo { width: 30px; height: 30px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,0.06); padding: 3px; flex-shrink: 0; }
+.rec-item-info { display: flex; flex-direction: column; min-width: 0; }
+.rec-item-emoji { font-size: 12px; line-height: 1; }
+.rec-item-name { font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-item-color { font-size: 11px; color: var(--text-muted); }
+.rec-item-bottom { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.rec-item-store { font-size: 11px; color: var(--text-muted); }
+.rec-item-price { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-primary); }
+.rec-item-badge { font-size: 10px; color: #6dd06d; background: rgba(100,200,100,0.1); border: 1px solid rgba(100,200,100,0.25); padding: 2px 8px; border-radius: 100px; }
+.rec-item-buy { font-size: 12px; color: var(--accent-primary); text-decoration: none; padding: 4px 12px; border: 1px solid rgba(200,169,110,0.3); border-radius: 100px; transition: all 0.2s; white-space: nowrap; }
+.rec-item-buy:hover { background: var(--accent-glow); border-color: var(--accent-primary); }
+
+.rec-chat-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 13px; color: var(--text-secondary); }
+.rec-chat-footer strong { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--accent-primary); }

@@ -1,4 +1,4 @@
-package com.vestry.model;
+package com.vestry.Model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

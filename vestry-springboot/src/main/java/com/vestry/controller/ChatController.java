@@ -1,7 +1,7 @@
-package com.vestry.controller;
+package com.vestry.Controller;
 
-import com.vestry.dto.ChatRequest;
-import com.vestry.service.ChatService;
+import com.vestry.Dto.ChatRequest;
+import com.vestry.Service.ChatService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +17,22 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    @PostMapping
+   /* @PostMapping
     public ResponseEntity<Map<String, String>> chat(@RequestBody ChatRequest req) {
         String response = chatService.chat(req.getUserId(), req.getMessage(), req.getHistory());
-        return ResponseEntity.ok(Map.of("response", response));
+return ResponseEntity.ok(Map.of("reply", response));       
+// return ResponseEntity.ok(Map.of("response", response));
     }
+*/
+    @PostMapping
+public ResponseEntity<Map<String, String>> chat(@RequestBody ChatRequest req) {
+
+    String reply = chatService.chat(
+            req.getUserId(),
+            req.getMessage(),
+            req.getHistory()
+    );
+
+    return ResponseEntity.ok(Map.of("reply", reply));
+}
 }

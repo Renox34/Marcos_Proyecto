@@ -1,11 +1,11 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.Garment;
-import com.vestry.model.PurchaseRecommendation;
-import com.vestry.model.User;
-import com.vestry.repository.GarmentRepository;
-import com.vestry.repository.PurchaseRecommendationRepository;
-import com.vestry.repository.UserRepository;
+import com.vestry.Model.Garment;
+import com.vestry.Model.PurchaseRecommendation;
+import com.vestry.Model.User;
+import com.vestry.Repository.GarmentRepository;
+import com.vestry.Repository.PurchaseRecommendationRepository;
+import com.vestry.Repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,16 +19,19 @@ public class RecommendationService {
     private final GarmentRepository garmentRepository;
     private final PurchaseRecommendationRepository recRepository;
     private final UserRepository userRepository;
-    private final AnthropicService anthropicService;
+    //private final AnthropicService anthropicService;
+        private final GeminiService geminiService;
 
     public RecommendationService(GarmentRepository garmentRepository,
                                  PurchaseRecommendationRepository recRepository,
                                  UserRepository userRepository,
-                                 AnthropicService anthropicService) {
+                                 //AnthropicService anthropicService) {
+                               GeminiService  geminiService) {
         this.garmentRepository = garmentRepository;
         this.recRepository = recRepository;
         this.userRepository = userRepository;
-        this.anthropicService = anthropicService;
+        //this.anthropicService = anthropicService;
+   this.geminiService = geminiService;
     }
 
     public String generate(Long userId, List<String> styles) {
@@ -43,7 +46,8 @@ public class RecommendationService {
                 + ". Sugiere 6 prendas en JSON array:"
                 + " [{name,category,price,season,reason,buyLink}]";
 
-        return anthropicService.chat(
+        //return anthropicService.chat(
+                    return geminiService.chat(
                 "Eres un asesor de moda experto. Responde SOLO con JSON valido.",
                 List.of(Map.of("role", "user", "content", prompt))
         );

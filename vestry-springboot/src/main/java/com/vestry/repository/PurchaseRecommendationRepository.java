@@ -1,6 +1,6 @@
-package com.vestry.repository;
+package com.vestry.Repository;
 
-import com.vestry.model.PurchaseRecommendation;
+import com.vestry.Model.PurchaseRecommendation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

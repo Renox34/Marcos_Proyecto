@@ -1,12 +1,12 @@
-package com.vestry.service;
+package com.vestry.Service;
 
-import com.vestry.model.CalendarEntry;
-import com.vestry.model.Outfit;
-import com.vestry.model.User;
-import com.vestry.repository.CalendarEntryRepository;
-import com.vestry.repository.GarmentRepository;
-import com.vestry.repository.OutfitRepository;
-import com.vestry.repository.UserRepository;
+import com.vestry.Model.CalendarEntry;
+import com.vestry.Model.Outfit;
+import com.vestry.Model.User;
+import com.vestry.Repository.CalendarEntryRepository;
+import com.vestry.Repository.GarmentRepository;
+import com.vestry.Repository.OutfitRepository;
+import com.vestry.Repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

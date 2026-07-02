@@ -1,4 +1,4 @@
-package com.vestry.dto;
+package com.vestry.Dto;
 
 public class RegisterRequest {
     private String name;

@@ -1,6 +1,6 @@
-package com.vestry.dto;
+package com.vestry.Dto;
 
-import com.vestry.model.User;
+import com.vestry.Model.User;
 
 public class AuthResponse {
     private User user;

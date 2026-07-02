@@ -1,6 +1,6 @@
-package com.vestry.repository;
+package com.vestry.Repository;
 
-import com.vestry.model.Garment;
+import com.vestry.Model.Garment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.time.LocalDate;

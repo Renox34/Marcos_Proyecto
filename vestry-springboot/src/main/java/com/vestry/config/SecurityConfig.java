@@ -1,6 +1,6 @@
-package com.vestry.config;
+package com.vestry.Config;
 
-import com.vestry.security.JwtFilter;
+import com.vestry.Security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

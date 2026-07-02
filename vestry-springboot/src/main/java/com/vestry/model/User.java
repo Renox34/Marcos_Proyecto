@@ -1,5 +1,7 @@
-package com.vestry.model;
+package com.vestry.Model;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -23,9 +25,13 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Column(name = "style_preferences", columnDefinition = "jsonb")
-    private String stylePreferences = "[]";
+  // @Column(name = "style_preferences", columnDefinition = "jsonb")
+   // private String stylePreferences = "[]";
 
+    @JdbcTypeCode(SqlTypes.JSON)
+@Column(name = "style_preferences", columnDefinition = "jsonb")
+private String stylePreferences = "[]";
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 

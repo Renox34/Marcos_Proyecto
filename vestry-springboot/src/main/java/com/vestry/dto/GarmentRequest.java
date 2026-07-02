@@ -1,4 +1,4 @@
-package com.vestry.dto;
+package com.vestry.Dto;
 
 import java.math.BigDecimal;
 

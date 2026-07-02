@@ -1,4 +1,4 @@
-package com.vestry.config;
+package com.vestry.Config;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

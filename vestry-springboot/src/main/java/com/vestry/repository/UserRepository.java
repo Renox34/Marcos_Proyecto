@@ -1,6 +1,6 @@
-package com.vestry.repository;
+package com.vestry.Repository;
 
-import com.vestry.model.User;
+import com.vestry.Model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
